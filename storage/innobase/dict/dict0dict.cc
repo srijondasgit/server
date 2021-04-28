@@ -965,8 +965,9 @@ dict_table_open_on_name(
 					indexes after an aborted online
 					index creation */
 	dict_err_ignore_t
-			ignore_err)	/*!< in: error to be ignored when
+			ignore_err,	/*!< in: error to be ignored when
 					loading a table definition */
+	bool		expect_discarded)
 {
 	dict_table_t*	table;
 	DBUG_ENTER("dict_table_open_on_name");
@@ -982,7 +983,8 @@ dict_table_open_on_name(
 	table = dict_table_check_if_in_cache_low(table_name);
 
 	if (table == NULL) {
-		table = dict_load_table(table_name, ignore_err);
+		table = dict_load_table(table_name, ignore_err,
+					expect_discarded);
 	}
 
 	ut_ad(!table || table->cached);

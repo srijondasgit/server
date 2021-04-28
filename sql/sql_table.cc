@@ -5830,8 +5830,71 @@ int mysql_discard_or_import_tablespace(THD *thd,
   if (open_and_lock_tables(thd, table_list, FALSE, 0,
                            &alter_prelocking_strategy))
   {
-    thd->tablespace_op=FALSE;
-    DBUG_RETURN(-1);
+    if (!discard && thd->is_error() &&
+        thd->get_stmt_da()->sql_errno() == ER_NO_SUCH_TABLE_IN_ENGINE)
+    {
+      // in this code block we're trying to create a discarded InnoDB table
+      // from existing .frm file
+
+      MDL_request mdl_request;
+
+      mdl_request.init(MDL_key::TABLE, table_list->db, table_list->alias,
+                       MDL_INTENTION_EXCLUSIVE, MDL_EXPLICIT);
+      if (thd->mdl_context.acquire_lock(&mdl_request, 1.0))
+        DBUG_RETURN(-1);
+
+      TABLE table;
+      TABLE_SHARE *share= tdc_acquire_share(thd, table_list, GTS_TABLE);
+      if (!share)
+      {
+        thd->mdl_context.release_lock(mdl_request.ticket);
+        DBUG_RETURN(-1);
+      }
+
+      if (OPEN_FRM_OK !=
+          open_table_from_share(thd, share, table_list->alias,
+                                HA_OPEN_KEYFILE | HA_TRY_READ_ONLY,
+                                EXTRA_RECORD | MAYBE_DISCARDED,
+                                thd->open_options, &table, false))
+      {
+        thd->mdl_context.release_lock(mdl_request.ticket);
+        tdc_release_share(share);
+        closefrm(&table);
+        DBUG_RETURN(-1);
+      }
+
+      HA_CREATE_INFO info;
+      info.init();
+      info.discarded= true;
+
+      if (table.file->ha_create(share->normalized_path.str, &table, &info))
+      {
+        thd->mdl_context.release_lock(mdl_request.ticket);
+        tdc_release_share(share);
+        closefrm(&table);
+        DBUG_RETURN(-1);
+      }
+
+      thd->mdl_context.release_lock(mdl_request.ticket);
+      tdc_release_share(share);
+      closefrm(&table);
+
+      thd->clear_error(true);
+      thd->get_stmt_da()->clear_warning_info(thd->query_id);
+      table_list->mdl_request.ticket= NULL;
+
+      if (open_and_lock_tables(thd, table_list, false, 0,
+                               &alter_prelocking_strategy))
+      {
+        DBUG_RETURN(-1);
+      }
+      thd->get_stmt_da()->clear_warning_info(thd->query_id);
+    }
+    else
+    {
+      thd->tablespace_op= FALSE;
+      DBUG_RETURN(-1);
+    }
   }
 
   error= table_list->table->file->ha_discard_or_import_tablespace(discard);

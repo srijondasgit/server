@@ -80,6 +80,7 @@ static
 dict_table_t*
 dict_load_table_one(
 	const table_name_t&	name,
+	bool			expect_discarded,
 	dict_err_ignore_t	ignore_err,
 	dict_names_t&		fk_tables);
 
@@ -2781,7 +2782,8 @@ a foreign key references columns in this table.
 @return table, NULL if does not exist; if the table is stored in an
 .ibd file, but the file does not exist, then we set the file_unreadable
 flag in the table object we return. */
-dict_table_t* dict_load_table(const char* name, dict_err_ignore_t ignore_err)
+dict_table_t* dict_load_table(const char* name, dict_err_ignore_t ignore_err,
+                              bool expect_discarded)
 {
 	dict_names_t			fk_list;
 	dict_table_t*			result;
@@ -2796,11 +2798,13 @@ dict_table_t* dict_load_table(const char* name, dict_err_ignore_t ignore_err)
 
 	if (!result) {
 		result = dict_load_table_one(const_cast<char*>(name),
+					     expect_discarded,
 					     ignore_err, fk_list);
 		while (!fk_list.empty()) {
 			if (!dict_table_check_if_in_cache_low(fk_list.front()))
 				dict_load_table_one(
 					const_cast<char*>(fk_list.front()),
+					expect_discarded,
 					ignore_err, fk_list);
 			fk_list.pop_front();
 		}
@@ -2816,6 +2820,7 @@ UNIV_INLINE
 void
 dict_load_tablespace(
 	dict_table_t*		table,
+	bool			expect_discarded,
 	dict_err_ignore_t	ignore_err)
 {
 	ut_ad(!dict_table_is_temporary(table));
@@ -2826,8 +2831,10 @@ dict_load_tablespace(
 	}
 
 	if (table->flags2 & DICT_TF2_DISCARDED) {
-		ib::warn() << "Tablespace for table " << table->name
-			<< " is set as discarded.";
+		if (expect_discarded) {
+			ib::info() << "Tablespace for table " << table->name
+				<< " is set as discarded.";
+		}
 		table->file_unreadable = true;
 		return;
 	}
@@ -2904,6 +2911,7 @@ static
 dict_table_t*
 dict_load_table_one(
 	const table_name_t&	name,
+	bool			expect_discarded,
 	dict_err_ignore_t	ignore_err,
 	dict_names_t&		fk_tables)
 {
@@ -2984,7 +2992,7 @@ err_exit:
 	btr_pcur_close(&pcur);
 	mtr_commit(&mtr);
 
-	dict_load_tablespace(table, ignore_err);
+	dict_load_tablespace(table, expect_discarded, ignore_err);
 
 	dict_load_columns(table, heap);
 

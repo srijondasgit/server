@@ -524,7 +524,8 @@ dict_table_open_on_name(
 	const char*		table_name,
 	ibool			dict_locked,
 	ibool			try_drop,
-	dict_err_ignore_t	ignore_err)
+	dict_err_ignore_t	ignore_err,
+	bool			expect_discarded=false)
 	MY_ATTRIBUTE((warn_unused_result));
 
 /** Outcome of dict_foreign_find_index() or dict_foreign_qualify_index() */
