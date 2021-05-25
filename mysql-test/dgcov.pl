@@ -162,7 +162,10 @@ sub gcov_one_file {
   }
 
   # now, read the generated file
-  open FH, '<', "$_.gcov" or die "open(<$_.gcov): $!";
+  (my $filename = $_)=~ s/\.[^.]+$//; # remove extension
+  my $gcov_file_path= $File::Find::dir."/$filename.gcov";
+  return unless (-f $gcov_file_path);
+  open FH, '<', "$gcov_file_path" or die "open(<$gcov_file_path): $!";
   my $fname;
   while (<FH>) {
     chomp;
