@@ -9277,6 +9277,7 @@ int dynamic_column_error_message(enum_dyncol_func_result rc)
 }
 
 
+
 /**
   Turn on the SELECT_DESCRIBE flag for the primary SELECT_LEX of the statement
   being processed in case the statement is EXPLAIN UPDATE/DELETE.
