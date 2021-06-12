@@ -35,7 +35,7 @@ enable_warnings;
 # Create compressed table according to engine
 if($test_engine == "connect"){
     eval INSTALL SONAME "$HA_CONNECT_SO";
-    
+
     # Connect only supports BZip2
     if($test_library != "bzip2"){
         echo Error: engine "connect" only supports library "bzip2";
@@ -43,7 +43,7 @@ if($test_engine == "connect"){
     }
 
     #FIXME: Connect test currently fails
-    let $table_create_parameters = 
+    let $table_create_parameters =
         compress   = 1
         table_tyle = CSV
         file_name  = "test_table.zip"
@@ -53,10 +53,10 @@ if($test_engine == "connect"){
 source include/have_innodb.inc;
 if($test_engine == "innodb"){
     let $innodb_compression_algorithm_orig = `SELECT @@Innodb_compression_algorithm`;
-    
+
     eval SET GLOBAL Innodb_compression_algorithm = $test_library;
     let $table_create_parameters = page_compressed = 1;
-    
+
     disable_query_log;
     CALL mtr.add_suppression("InnoDB: Background Page read failed to read or decrypt \\[page id: space=\\d+, page number=[123]\\]");
     eval CALL mtr.add_suppression("InnoDB: Table `test`.`$test_table_name` is corrupted. Please drop the table and recreate.");

@@ -4878,10 +4878,7 @@ Sys_proxy_protocol_networks(
 
 static const char *compression_libraries[] =
 {
-  //"bzip2", "lz4",
-  "lzma",
-  //"lzo", "snappy", "zlib", "zstd",
-  NULL
+  "lzma", NULL
 };
 
 static Sys_var_set Sys_compression_libraries(

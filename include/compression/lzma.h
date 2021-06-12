@@ -3,7 +3,7 @@
   This service provides dynamic access to LZMA.
 */
 
-#ifndef SERVICE_LZMA_INCLUDED
+#ifndef COMPRESSION_LZMA_INCLUDED
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,7 +14,8 @@ extern "C" {
 #include <stddef.h>
 #endif
 
-typedef enum{
+typedef enum
+{
     LZMA_OK                 = 0,
     LZMA_STREAM_END         = 1,
     LZMA_NO_CHECK           = 2,
@@ -29,13 +30,15 @@ typedef enum{
     LZMA_PROG_ERROR         = 11,
 } lzma_ret;
 
-typedef struct{
+typedef struct
+{
     void *(*alloc)(void *opaque, size_t nmemb, size_t size);
     void (*free)(void *opaque, void *ptr);
     void *opaque;
 } lzma_allocator;
 
-typedef enum{
+typedef enum
+{
     LZMA_CHECK_NONE     = 0,
     LZMA_CHECK_CRC32    = 1,
     LZMA_CHECK_CRC64    = 4,
@@ -65,8 +68,8 @@ typedef enum{
     size_t out_size                                         \
 )
 
-typedef DEFINE_lzma_stream_buffer_decode ((*PTR_lzma_stream_buffer_decode));
-typedef DEFINE_lzma_easy_buffer_encode   ((*PTR_lzma_easy_buffer_encode));
+typedef DEFINE_lzma_stream_buffer_decode((*PTR_lzma_stream_buffer_decode));
+typedef DEFINE_lzma_easy_buffer_encode((*PTR_lzma_easy_buffer_encode));
 
 struct compression_service_lzma_st{
     PTR_lzma_stream_buffer_decode lzma_stream_buffer_decode_ptr;
@@ -82,5 +85,5 @@ extern struct compression_service_lzma_st *compression_service_lzma;
 }
 #endif
 
-#define SERVICE_LZMA_INCLUDED
+#define COMPRESSION_LZMA_INCLUDED
 #endif

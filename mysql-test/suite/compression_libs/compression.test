@@ -2,10 +2,10 @@
 
 # \       |BZip2|LZ4|LZ4HC|LZMA|LZO|Snappy|ZStandard
 # --------|-----|---|-----|----|---|------|---------
-# Connect |*    |   |     |    |   |      |         
-# InnoDB  |*    |*  |     |*   |*  |*     |         
-# Mroonga |     |*  |     |    |   |      |*        
-# RocksDB |*    |*  |*    |    |   |*     |*        
+# Connect |*    |   |     |    |   |      |
+# InnoDB  |*    |*  |     |*   |*  |*     |
+# Mroonga |     |*  |     |    |   |      |*
+# RocksDB |*    |*  |*    |    |   |*     |*
 
 #TODO: Fix remaining tests
 
