@@ -40,17 +40,7 @@ extern "C" {
 #include <mysql/service_thd_timezone.h>
 #include <mysql/service_thd_wait.h>
 #include <mysql/service_json.h>
-
 /*#include <mysql/service_wsrep.h>*/
-
-//Dynamic Compression Libraries
-#include <compression/bzlib.h>
-#include <compression/lz4.h>
-#include <compression/lz4hc.h>
-#include <compression/lzma.h>
-#include <compression/lzo/lzo1x.h>
-#include <compression/snappy-c.h>
-#include <compression/zstd.h>
 
 #ifdef __cplusplus
 }

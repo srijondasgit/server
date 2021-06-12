@@ -14,8 +14,6 @@ extern "C" {
 #include <stddef.h>
 #endif
 
-extern bool COMPRESSION_LOADED_LZMA;
-
 typedef enum{
     LZMA_OK                 = 0,
     LZMA_STREAM_END         = 1,

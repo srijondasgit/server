@@ -66,8 +66,6 @@
 #include "semisync_slave.h"
 #include <ssl_compat.h>
 
-#include <compression/compression_libs.h>
-
 #define PCRE2_STATIC 1             /* Important on Windows */
 #include "pcre2.h"                 /* pcre2 header file */
 
@@ -4880,17 +4878,17 @@ Sys_proxy_protocol_networks(
 
 static const char *compression_libraries[] =
 {
-  "bzip2", "lz4", "lzma", "lzo", "snappy", "zlib", "zstd", "ALL", NULL
+  //"bzip2", "lz4",
+  "lzma",
+  //"lzo", "snappy", "zlib", "zstd",
+  NULL
 };
 
 static Sys_var_set Sys_compression_libraries(
-    "use_compression", "Makes these compression libraries available for use by "
-    "storage engines. The syntax is a comma separated list of installed "
-    "libraries. \"\" represents no libraries and \"all\" represents all libraries. "
-    "Defaults to \"all\".",
-    READ_ONLY GLOBAL_VAR(enabled_compression_libraries), CMD_LINE(OPT_ARG),
-    compression_libraries, DEFAULT(COMPRESSION_ALL), NO_MUTEX_GUARD, NOT_IN_BINLOG,
-    ON_CHECK(NULL), ON_UPDATE(NULL));
+    "use_compression", "Compressions algorithms available to the server.",
+    READ_ONLY GLOBAL_VAR(enabled_compression_libraries),
+    CMD_LINE(REQUIRED_ARG), compression_libraries,
+    DEFAULT(my_set_bits(array_elements(compression_libraries)-1)));
 
 
 static bool check_log_path(sys_var *self, THD *thd, set_var *var)

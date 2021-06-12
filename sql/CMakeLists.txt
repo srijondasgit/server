@@ -172,12 +172,12 @@ SET (SQL_SOURCE
 
                # Dynamic compression
                compression/compression_libs.cc
-               compression/bzip2.cc  ../libservices/compression_service_bzip2.c
-               compression/lz4.cc    ../libservices/compression_service_lz4.c
-               compression/lzma.cc   ../libservices/compression_service_lzma.c
-               compression/lzo.cc    ../libservices/compression_service_lzo.c
-               compression/snappy.cc ../libservices/compression_service_snappy.c
-               compression/zstd.cc   ../libservices/compression_service_zstd.c
+               #compression/bzip2.cc
+               #compression/lz4.cc
+               compression/lzma.cc
+               #compression/lzo.cc
+               #compression/snappy.cc
+               #compression/zstd.cc
 )
   
 IF ((CMAKE_SYSTEM_NAME MATCHES "Linux" OR

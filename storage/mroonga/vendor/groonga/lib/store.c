@@ -1423,9 +1423,7 @@ grn_ja_ref_zlib(grn_ctx *ctx, grn_ja *ja, grn_id id, grn_io_win *iw, uint32_t *v
 #endif /* GRN_WITH_ZLIB */
 
 #ifdef GRN_WITH_LZ4
-//FIXME: Override include paths to force
-//`include/compression` to have priority
-#include <compression/lz4.h>
+#include <lz4.h>
 
 # if (LZ4_VERSION_MAJOR == 1 && LZ4_VERSION_MINOR < 6)
 #  define LZ4_compress_default(source, dest, source_size, max_dest_size) \
@@ -1483,9 +1481,7 @@ grn_ja_ref_lz4(grn_ctx *ctx, grn_ja *ja, grn_id id, grn_io_win *iw, uint32_t *va
 #endif /* GRN_WITH_LZ4 */
 
 #ifdef GRN_WITH_ZSTD
-//FIXME: Override include paths to force
-//`include/compression` to have priority
-#include <compression/zstd.h>
+#include <zstd.h>
 
 static void *
 grn_ja_ref_zstd(grn_ctx *ctx,

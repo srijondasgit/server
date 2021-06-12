@@ -285,53 +285,6 @@ MACRO(MYSQL_ADD_PLUGIN)
     INSTALL_MYSQL_TEST("${CMAKE_CURRENT_SOURCE_DIR}/mysql-test/" "plugin/${subpath}")
   ENDIF()
 
-  # Inject dynamic compression headers
-  IF(
-    plugin STREQUAL "CONNECT"  OR
-    plugin STREQUAL "INNOBASE" OR
-    plugin STREQUAL "MROONGA"  OR
-    plugin STREQUAL "ROCKSDB"
-  )
-    INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/compression)
-  ENDIF()
-
-  IF(plugin STREQUAL "CONNECT")
-    ADD_DEFINITIONS(-DHAVE_BZIP2)
-
-  ELSEIF(plugin STREQUAL "INNOBASE")
-    # TODO: see if changing storage/innobase/<library>.cmake is better.
-    ADD_DEFINITIONS(
-      -DHAVE_BZIP2
-      -DHAVE_LZ4 -DHAVE_LZ4_COMPRESS_DEFAULT
-      -DHAVE_LZMA
-      -DHAVE_LZO
-      -DHAVE_SNAPPY
-    )
-
-    GET_PROPERTY(LINK_LIBRARIES DIRECTORY PROPERTY LINK_LIBRARIES)
-    LIST(REMOVE_ITEM LINK_LIBRARIES
-      bz2
-      lz4
-      lzma
-      lzo2 liblzo2.a
-      snappy
-    )
-    SET_PROPERTY(DIRECTORY PROPERTY LINK_LIBRARIES "${LINK_LIBRARIES}")
-
-  ELSEIF(plugin STREQUAL "MROONGA")
-
-  ELSEIF(plugin STREQUAL "ROCKSDB")
-    SET(WITH_ROCKSDB_BZIP2  OFF)
-    SET(WITH_ROCKSDB_LZ4    OFF)
-    SET(WITH_ROCKSDB_SNAPPY OFF)
-
-    ADD_DEFINITIONS(
-      -DBZIP2
-      -DLZ4
-      -DSNAPPY
-    )
-
-  ENDIF()
   ENDIF(NOT WITHOUT_SERVER OR ARG_CLIENT)
 ENDMACRO()
 

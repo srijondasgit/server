@@ -15,8 +15,6 @@
 
 add_definitions(
   -DGRN_DAT_EXPORT
-  #FIXME: Move to cmake/plugin.cmake if possible
-  -DGRN_WITH_ZSTD
   )
 
 include_directories(

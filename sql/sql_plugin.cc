@@ -1638,12 +1638,12 @@ int plugin_init(int *argc, char **argv, int flags)
   list_of_services[1].service= *(void**)&debug_sync_C_callback_ptr;
 
   init_compression(
-    &compression_handler_bzip2,
-    &compression_handler_lz4,
-    &compression_handler_lzma,
-    &compression_handler_lzo,
-    &compression_handler_snappy,
-    &compression_handler_zstd
+    //&compression_handler_bzip2,
+    //&compression_handler_lz4,
+    &compression_handler_lzma//,
+    //&compression_handler_lzo,
+    //&compression_handler_snappy,
+    //&compression_handler_zstd
   );
 
   /* prepare encryption_keys service */

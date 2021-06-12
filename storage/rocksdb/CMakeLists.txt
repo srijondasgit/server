@@ -234,10 +234,7 @@ ADD_LIBRARY(rocksdb_tools STATIC
 )
 
 MYSQL_ADD_EXECUTABLE(sst_dump rocksdb/tools/sst_dump.cc COMPONENT rocksdb-engine)
-TARGET_LINK_LIBRARIES(sst_dump
-  rocksdblib
-  "${CMAKE_SOURCE_DIR}/libservices/libmysqlservices.a"
-)
+TARGET_LINK_LIBRARIES(sst_dump rocksdblib)
 
 MYSQL_ADD_EXECUTABLE(mariadb-ldb tools/mysql_ldb.cc COMPONENT rocksdb-engine)
 TARGET_LINK_LIBRARIES(mariadb-ldb rocksdb_tools rocksdb_aux_lib dbug)
