@@ -171,14 +171,7 @@ SET (SQL_SOURCE
                ${GEN_SOURCES}
                ${MYSYS_LIBWRAP_SOURCE}
 
-               # Dynamic compression
-               compression/compression_libs.cc
-               #compression/bzip2.cc
-               #compression/lz4.cc
                compression/lzma.cc
-               #compression/lzo.cc
-               #compression/snappy.cc
-               #compression/zstd.cc
 )
   
 IF ((CMAKE_SYSTEM_NAME MATCHES "Linux" OR
