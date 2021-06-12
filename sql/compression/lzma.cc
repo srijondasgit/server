@@ -18,7 +18,7 @@ void init_lzma(struct compression_service_lzma_st *handler, bool link_library){
         return;
 
     //Load LZMA library dynamically
-    void *lzma_library_handle = dlopen("liblzma.so", RTLD_LAZY | RTLD_GLOBAL);
+    void *lzma_library_handle = dlopen("liblzma.so.5", RTLD_LAZY);
     if(!lzma_library_handle || dlerror())
         return;
 

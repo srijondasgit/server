@@ -232,10 +232,12 @@ static struct thd_mdl_service_st thd_mdl_handler=
 // updated in init_compression()
 //static struct compression_service_bzip2_st  compression_handler_bzip2  = {};
 //static struct compression_service_lz4_st    compression_handler_lz4    = {};
-static struct compression_service_lzma_st   compression_handler_lzma   = {};
 //static struct compression_service_lzo_st    compression_handler_lzo    = {};
 //static struct compression_service_snappy_st compression_handler_snappy = {};
 //static struct compression_service_zstd_st   compression_handler_zstd   = {};
+
+static struct compression_service_lzma_st compression_handler_lzma;
+struct compression_service_lzma_st *compression_service_lzma= &compression_handler_lzma;
 
 static struct st_service_ref list_of_services[]=
 {
