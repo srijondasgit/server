@@ -1639,6 +1639,8 @@ int plugin_init(int *argc, char **argv, int flags)
 
   if (init_lzma(&compression_handler_lzma))
     goto err;
+  if (init_lzo(&compression_handler_lzo))
+    goto err;
 
   /* prepare encryption_keys service */
   finalize_encryption_plugin(0);

@@ -71,7 +71,8 @@ typedef enum
 typedef DEFINE_lzma_stream_buffer_decode((*PTR_lzma_stream_buffer_decode));
 typedef DEFINE_lzma_easy_buffer_encode((*PTR_lzma_easy_buffer_encode));
 
-struct compression_service_lzma_st{
+struct compression_service_lzma_st
+{
     PTR_lzma_stream_buffer_decode lzma_stream_buffer_decode_ptr;
     PTR_lzma_easy_buffer_encode   lzma_easy_buffer_encode_ptr;
 };

@@ -1,0 +1,4 @@
+source include/have_innodb.inc;
+let $test_engine= innodb;
+let $test_library=lzo;
+source test_library.inc;

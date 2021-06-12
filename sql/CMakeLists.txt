@@ -172,6 +172,7 @@ SET (SQL_SOURCE
                ${MYSYS_LIBWRAP_SOURCE}
 
                compression/lzma.cc
+               compression/lzo.cc
 )
   
 IF ((CMAKE_SYSTEM_NAME MATCHES "Linux" OR
