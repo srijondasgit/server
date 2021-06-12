@@ -1916,7 +1916,12 @@ err:
     }
   }
   if (ddl_log_state == &local_ddl_log_state)
-    ddl_log_complete(thd, ddl_log_state);
+  {
+    if (ddl_log_state->revert)
+      ddl_log_revert(thd, ddl_log_state);
+    else
+      ddl_log_complete(ddl_log_state);
+  }
 
   if (!drop_temporary)
   {
@@ -4848,13 +4853,17 @@ err:
       backup_log_ddl(&ddl_log);
     }
   }
-  if (result && ddl_log_state_rm.is_active())
+  if (result)
   {
-    ddl_log_state_create.revert= true;
+    ddl_log_revert(thd, &ddl_log_state_create);
     ddl_log_state_rm.revert= false;
+    ddl_log_complete(&ddl_log_state_rm);
   }
-  ddl_log_complete(thd, &ddl_log_state_create);
-  ddl_log_complete(thd, &ddl_log_state_rm);
+  else
+  {
+    ddl_log_complete(&ddl_log_state_create);
+    ddl_log_revert(thd, &ddl_log_state_rm);
+  }
   DBUG_RETURN(result);
 }
 
@@ -5509,13 +5518,17 @@ err:
     backup_log_ddl(&ddl_log);
   }
 
-  if (res && ddl_log_state_rm.is_active())
+  if (res)
   {
-    ddl_log_state_create.revert= true;
+    ddl_log_revert(thd, &ddl_log_state_create);
     ddl_log_state_rm.revert= false;
+    ddl_log_complete(&ddl_log_state_rm);
   }
-  ddl_log_complete(thd, &ddl_log_state_create);
-  ddl_log_complete(thd, &ddl_log_state_rm);
+  else
+  {
+    ddl_log_complete(&ddl_log_state_create);
+    ddl_log_revert(thd, &ddl_log_state_rm);
+  }
   DBUG_RETURN(res != 0);
 }
 
@@ -9226,7 +9239,10 @@ simple_rename_or_index_change(THD *thd, TABLE_LIST *table_list,
     if (likely(!error))
       my_ok(thd);
   }
-  ddl_log_complete(thd, &ddl_log_state);
+  if (ddl_log_state.revert)
+    ddl_log_revert(thd, &ddl_log_state);
+  else
+    ddl_log_complete(&ddl_log_state);
   table_list->table= NULL;                    // For query cache
   query_cache_invalidate3(thd, table_list, 0);
 
@@ -10731,7 +10747,10 @@ end_inplace:
     We have to close the ddl log as soon as possible, after binlogging the
     query, for inplace alter table.
   */
-  ddl_log_complete(thd, &ddl_log_state);
+  if (ddl_log_state.revert)
+    ddl_log_revert(thd, &ddl_log_state);
+  else
+    ddl_log_complete(&ddl_log_state);
   if (inplace_alter_table_committed)
   {
     /* Signal to storage engine that ddl log is committed */
@@ -10812,7 +10831,10 @@ err_new_table_cleanup:
 
 err_cleanup:
   my_free(const_cast<uchar*>(frm.str));
-  ddl_log_complete(thd, &ddl_log_state);
+  if (ddl_log_state.revert)
+    ddl_log_revert(thd, &ddl_log_state);
+  else
+    ddl_log_complete(&ddl_log_state);
   if (inplace_alter_table_committed)
   {
     /* Signal to storage engine that ddl log is committed */
@@ -10834,7 +10856,10 @@ err_with_mdl_after_alter:
     write_bin_log_with_if_exists(thd, FALSE, FALSE, log_if_exists);
 
 err_with_mdl:
-  ddl_log_complete(thd, &ddl_log_state);
+  if (ddl_log_state.revert)
+    ddl_log_revert(thd, &ddl_log_state);
+  else
+    ddl_log_complete(&ddl_log_state);
   /*
     An error happened while we were holding exclusive name metadata lock
     on table being altered. To be safe under LOCK TABLES we should
