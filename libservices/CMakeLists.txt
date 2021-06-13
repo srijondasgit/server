@@ -38,6 +38,7 @@ SET(MYSQLSERVICES_SOURCES
   thd_timezone_service.c
   thd_wait_service.c
   wsrep_service.c
+  wrapper_service_bzip2.c
   wrapper_service_lzma.c
   wrapper_service_lzo.c
 )
