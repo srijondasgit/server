@@ -6,6 +6,10 @@ plugin-load-add=$LZMA_SO
 innodb
 plugin-load-add=$LZO_SO
 
+[innodb-lz4]
+innodb
+plugin-load-add=$LZ4_SO
+
 [innodb-bzip2]
 innodb
 plugin-load-add=$BZIP2_SO

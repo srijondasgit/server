@@ -269,6 +269,15 @@ static struct wrapper_service_snappy_st wrapper_handler_snappy=
 };
 struct wrapper_service_snappy_st *wrapper_service_snappy= &wrapper_handler_snappy;
 
+#include <wrappers/lz4.h>
+static struct wrapper_service_lz4_st wrapper_handler_lz4=
+{
+  DEFINE_LZ4_compressBound([]) { return 0; },
+  DEFINE_LZ4_compress_default([]) { return 0; },
+  DEFINE_LZ4_decompress_safe([]) { return -1; }
+};
+struct wrapper_service_lz4_st *wrapper_service_lz4= &wrapper_handler_lz4;
+
 static struct st_service_ref list_of_services[]=
 {
   { "base64_service",              VERSION_base64,              &base64_handler },
@@ -295,6 +304,7 @@ static struct st_service_ref list_of_services[]=
   { "json_service",                VERSION_json,                &json_handler },
   { "thd_mdl_service",             VERSION_thd_mdl,             &thd_mdl_handler },
   { "wrapper_service_bzip2",       VERSION_wrapper_bzip2,       &wrapper_handler_bzip2 },
+  { "wrapper_service_lz4",         VERSION_wrapper_lz4,         &wrapper_handler_lz4 },
   { "wrapper_service_lzma",        VERSION_wrapper_lzma,        &wrapper_handler_lzma },
   { "wrapper_service_lzo",         VERSION_wrapper_lzo,         &wrapper_handler_lzo },
   { "wrapper_service_snappy",      VERSION_wrapper_snappy,      &wrapper_handler_snappy }
