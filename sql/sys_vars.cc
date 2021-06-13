@@ -4876,18 +4876,6 @@ Sys_proxy_protocol_networks(
     ON_CHECK(check_proxy_protocol_networks), ON_UPDATE(fix_proxy_protocol_networks));
 
 
-static const char *compression_libraries[] =
-{
-  "lzma", "lzo", NULL
-};
-
-static Sys_var_set Sys_compression_libraries(
-    "use_compression", "Compressions algorithms available to the server.",
-    READ_ONLY GLOBAL_VAR(enabled_compression_libraries),
-    CMD_LINE(REQUIRED_ARG), compression_libraries,
-    DEFAULT(my_set_bits(array_elements(compression_libraries)-1)));
-
-
 static bool check_log_path(sys_var *self, THD *thd, set_var *var)
 {
   if (!var->value)

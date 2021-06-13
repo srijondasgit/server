@@ -170,9 +170,6 @@ SET (SQL_SOURCE
                ${CMAKE_CURRENT_BINARY_DIR}/lex_token.h
                ${GEN_SOURCES}
                ${MYSYS_LIBWRAP_SOURCE}
-
-               compression/lzma.cc
-               compression/lzo.cc
 )
   
 IF ((CMAKE_SYSTEM_NAME MATCHES "Linux" OR

@@ -24,24 +24,24 @@ typedef unsigned long lzo_uint;
 #define lzo1x_decompress_safe(...) compression_service_lzo->lzo1x_decompress_safe_ptr (__VA_ARGS__)
 #endif
 
-#define DEFINE_lzo1x_1_15_compress(NAME) int NAME(  \
-    const unsigned char *src,                       \
-    unsigned long src_len,                          \
-    unsigned char *dst,                             \
-    unsigned long *dst_len,                         \
-    void *wrkmem                                    \
+#define DEFINE_lzo1x_1_15_compress(NAME) NAME(  \
+    const unsigned char *src,                   \
+    unsigned long src_len,                      \
+    unsigned char *dst,                         \
+    unsigned long *dst_len,                     \
+    void *wrkmem                                \
 )
 
-#define DEFINE_lzo1x_decompress_safe(NAME) int NAME(    \
-    const unsigned char *src,                           \
-    unsigned long src_len,                              \
-    unsigned char *dst,                                 \
-    unsigned long *dst_len,                             \
-    void *wrkmem                                        \
+#define DEFINE_lzo1x_decompress_safe(NAME) NAME( \
+    const unsigned char *src,                    \
+    unsigned long src_len,                       \
+    unsigned char *dst,                          \
+    unsigned long *dst_len,                      \
+    void *wrkmem                                 \
 )
 
-typedef DEFINE_lzo1x_1_15_compress((*PTR_lzo1x_1_15_compress));
-typedef DEFINE_lzo1x_decompress_safe((*PTR_lzo1x_decompress_safe));
+typedef int DEFINE_lzo1x_1_15_compress((*PTR_lzo1x_1_15_compress));
+typedef int DEFINE_lzo1x_decompress_safe((*PTR_lzo1x_decompress_safe));
 
 struct compression_service_lzo_st
 {

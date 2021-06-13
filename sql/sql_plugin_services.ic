@@ -214,7 +214,7 @@ static struct my_print_error_service_st my_print_error_handler=
   my_printv_error
 };
 
-struct json_service_st json_handler=
+static struct json_service_st json_handler=
 {
   json_type,
   json_get_array_item,
@@ -229,11 +229,20 @@ static struct thd_mdl_service_st thd_mdl_handler=
   thd_mdl_context
 };
 
-// updated in plugin_init()
-static struct compression_service_lzma_st compression_handler_lzma;
+#include <compression/lzma.h>
+static struct compression_service_lzma_st compression_handler_lzma=
+{
+  DEFINE_lzma_stream_buffer_decode([]) { return LZMA_PROG_ERROR; },
+  DEFINE_lzma_easy_buffer_encode([]) { return LZMA_PROG_ERROR; }
+};
 struct compression_service_lzma_st *compression_service_lzma= &compression_handler_lzma;
 
-static struct compression_service_lzo_st compression_handler_lzo;
+#include <compression/lzo/lzo1x.h>
+static struct compression_service_lzo_st compression_handler_lzo=
+{
+  DEFINE_lzo1x_1_15_compress([]) { return LZO_E_INTERNAL_ERROR; },
+  DEFINE_lzo1x_decompress_safe([]) { return LZO_E_INTERNAL_ERROR; }
+};
 struct compression_service_lzo_st *compression_service_lzo= &compression_handler_lzo;
 
 static struct st_service_ref list_of_services[]=

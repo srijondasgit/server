@@ -50,7 +50,7 @@ typedef enum
 #define lzma_easy_buffer_encode(...)   compression_service_lzma->lzma_easy_buffer_encode_ptr   (__VA_ARGS__)
 #endif
 
-#define DEFINE_lzma_stream_buffer_decode(NAME) lzma_ret NAME(   \
+#define DEFINE_lzma_stream_buffer_decode(NAME) NAME(            \
     uint64_t *memlimit,                                         \
     uint32_t flags,                                             \
     const lzma_allocator *allocator,                            \
@@ -62,7 +62,7 @@ typedef enum
     size_t out_size                                             \
 )
 
-#define DEFINE_lzma_easy_buffer_encode(NAME) lzma_ret NAME( \
+#define DEFINE_lzma_easy_buffer_encode(NAME) NAME(          \
     uint32_t preset,                                        \
     lzma_check check,                                       \
     const lzma_allocator *allocator,                        \
@@ -73,8 +73,8 @@ typedef enum
     size_t out_size                                         \
 )
 
-typedef DEFINE_lzma_stream_buffer_decode((*PTR_lzma_stream_buffer_decode));
-typedef DEFINE_lzma_easy_buffer_encode((*PTR_lzma_easy_buffer_encode));
+typedef lzma_ret DEFINE_lzma_stream_buffer_decode((*PTR_lzma_stream_buffer_decode));
+typedef lzma_ret DEFINE_lzma_easy_buffer_encode((*PTR_lzma_easy_buffer_encode));
 
 struct compression_service_lzma_st
 {
