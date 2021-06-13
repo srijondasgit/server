@@ -1,9 +1,9 @@
 /**
-  @file include/compression/lzo/lzo1x.h
+  @file lzo/lzo1x.h
   This service provides dynamic access to LZO.
 */
 
-#ifndef COMPRESSION_LZO_INCLUDED
+#ifndef LZO_INCLUDED
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -52,5 +52,5 @@ extern struct wrapper_service_lzo_st *wrapper_service_lzo;
 }
 #endif
 
-#define COMPRESSION_LZO_INCLUDED
+#define LZO_INCLUDED
 #endif
