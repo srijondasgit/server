@@ -20,6 +20,7 @@ SET(MYSQLSERVICES_SOURCES
   debug_sync_service.c
   encryption_scheme_service.c
   encryption_service.c
+  json_service.c
   kill_statement_service.c
   logger_service.c
   my_crypt_service.c
@@ -37,11 +38,9 @@ SET(MYSQLSERVICES_SOURCES
   thd_timezone_service.c
   thd_wait_service.c
   wsrep_service.c
-  json_service.c
-
-  compression_service_lzma.c
-  compression_service_lzo.c
-  )
+  wrapper_service_lzma.c
+  wrapper_service_lzo.c
+)
 
 ADD_CONVENIENCE_LIBRARY(mysqlservices ${MYSQLSERVICES_SOURCES})
 INSTALL(TARGETS mysqlservices DESTINATION ${INSTALL_LIBDIR} COMPONENT Development)

@@ -229,21 +229,21 @@ static struct thd_mdl_service_st thd_mdl_handler=
   thd_mdl_context
 };
 
-#include <compression/lzma.h>
-static struct compression_service_lzma_st compression_handler_lzma=
+#include <wrappers/lzma.h>
+static struct wrapper_service_lzma_st wrapper_handler_lzma=
 {
   DEFINE_lzma_stream_buffer_decode([]) { return LZMA_PROG_ERROR; },
   DEFINE_lzma_easy_buffer_encode([]) { return LZMA_PROG_ERROR; }
 };
-struct compression_service_lzma_st *compression_service_lzma= &compression_handler_lzma;
+struct wrapper_service_lzma_st *wrapper_service_lzma= &wrapper_handler_lzma;
 
-#include <compression/lzo/lzo1x.h>
-static struct compression_service_lzo_st compression_handler_lzo=
+#include <wrappers/lzo/lzo1x.h>
+static struct wrapper_service_lzo_st wrapper_handler_lzo=
 {
   DEFINE_lzo1x_1_15_compress([]) { return LZO_E_INTERNAL_ERROR; },
   DEFINE_lzo1x_decompress_safe([]) { return LZO_E_INTERNAL_ERROR; }
 };
-struct compression_service_lzo_st *compression_service_lzo= &compression_handler_lzo;
+struct wrapper_service_lzo_st *wrapper_service_lzo= &wrapper_handler_lzo;
 
 static struct st_service_ref list_of_services[]=
 {
@@ -270,6 +270,6 @@ static struct st_service_ref list_of_services[]=
   { "wsrep_service",               VERSION_wsrep,               &wsrep_handler },
   { "json_service",                VERSION_json,                &json_handler },
   { "thd_mdl_service",             VERSION_thd_mdl,             &thd_mdl_handler },
-  { "compression_service_lzma",    VERSION_compression_lzma,    &compression_handler_lzma },
-  { "compression_service_lzo",     VERSION_compression_lzo,     &compression_handler_lzo }
+  { "wrapper_service_lzma",        VERSION_wrapper_lzma,        &wrapper_handler_lzma },
+  { "wrapper_service_lzo",         VERSION_wrapper_lzo,         &wrapper_handler_lzo }
 };

@@ -26,6 +26,7 @@
 #define VERSION_base64                  0x0100
 #define VERSION_encryption              0x0300
 #define VERSION_encryption_scheme       0x0100
+#define VERSION_json                    0x0100
 #define VERSION_logger                  0x0100
 #define VERSION_my_crypt                0x0100
 #define VERSION_my_md5                  0x0100
@@ -37,13 +38,11 @@
 #define VERSION_thd_alloc               0x0200
 #define VERSION_thd_autoinc             0x0100
 #define VERSION_thd_error_context       0x0200
+#define VERSION_thd_mdl                 0x0100
 #define VERSION_thd_rnd                 0x0100
 #define VERSION_thd_specifics           0x0100
 #define VERSION_thd_timezone            0x0100
 #define VERSION_thd_wait                0x0100
 #define VERSION_wsrep                   0x0202
-#define VERSION_json                    0x0100
-#define VERSION_thd_mdl                 0x0100
-
-#define VERSION_compression_lzma        0x0100
-#define VERSION_compression_lzo         0x0100
+#define VERSION_wrapper_lzma            0x0100
+#define VERSION_wrapper_lzo             0x0100

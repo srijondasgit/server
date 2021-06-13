@@ -20,8 +20,8 @@ extern "C" {
 
 typedef unsigned long lzo_uint;
 
-#define lzo1x_1_15_compress(...)   compression_service_lzo->lzo1x_1_15_compress_ptr   (__VA_ARGS__)
-#define lzo1x_decompress_safe(...) compression_service_lzo->lzo1x_decompress_safe_ptr (__VA_ARGS__)
+#define lzo1x_1_15_compress(...)   wrapper_service_lzo->lzo1x_1_15_compress_ptr   (__VA_ARGS__)
+#define lzo1x_decompress_safe(...) wrapper_service_lzo->lzo1x_decompress_safe_ptr (__VA_ARGS__)
 #endif
 
 #define DEFINE_lzo1x_1_15_compress(NAME) NAME(  \
@@ -40,16 +40,13 @@ typedef unsigned long lzo_uint;
     void *wrkmem                                 \
 )
 
-typedef int DEFINE_lzo1x_1_15_compress((*PTR_lzo1x_1_15_compress));
-typedef int DEFINE_lzo1x_decompress_safe((*PTR_lzo1x_decompress_safe));
-
-struct compression_service_lzo_st
+struct wrapper_service_lzo_st
 {
-    PTR_lzo1x_1_15_compress   lzo1x_1_15_compress_ptr;
-    PTR_lzo1x_decompress_safe lzo1x_decompress_safe_ptr;
+  int DEFINE_lzo1x_1_15_compress((*lzo1x_1_15_compress_ptr));
+  int DEFINE_lzo1x_decompress_safe((*lzo1x_decompress_safe_ptr));
 };
 
-extern struct compression_service_lzo_st *compression_service_lzo;
+extern struct wrapper_service_lzo_st *wrapper_service_lzo;
 
 #ifdef __cplusplus
 }

@@ -16,12 +16,12 @@
 #include <mysql_version.h>
 #include <mysql/plugin.h>
 #include <lzma.h>
-#include <compression/lzma.h>
+#include <wrappers/lzma.h>
 
 static int init(void* h)
 {
-  compression_service_lzma->lzma_stream_buffer_decode_ptr= lzma_stream_buffer_decode;
-  compression_service_lzma->lzma_easy_buffer_encode_ptr= lzma_easy_buffer_encode;
+  wrapper_service_lzma->lzma_stream_buffer_decode_ptr= lzma_stream_buffer_decode;
+  wrapper_service_lzma->lzma_easy_buffer_encode_ptr= lzma_easy_buffer_encode;
   return 0;
 }
 

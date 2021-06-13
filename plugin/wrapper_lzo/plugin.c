@@ -16,12 +16,12 @@
 #include <mysql_version.h>
 #include <mysql/plugin.h>
 #include <lzo/lzo1x.h>
-#include <compression/lzo/lzo1x.h>
+#include <wrappers/lzo/lzo1x.h>
 
 static int init(void* h)
 {
-  compression_service_lzo->lzo1x_1_15_compress_ptr= lzo1x_1_15_compress;
-  compression_service_lzo->lzo1x_decompress_safe_ptr= lzo1x_decompress_safe;
+  wrapper_service_lzo->lzo1x_1_15_compress_ptr= lzo1x_1_15_compress;
+  wrapper_service_lzo->lzo1x_decompress_safe_ptr= lzo1x_decompress_safe;
   return 0;
 }
 
