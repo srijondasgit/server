@@ -9,3 +9,7 @@ plugin-load-add=$LZO_SO
 [innodb-bzip2]
 innodb
 plugin-load-add=$BZIP2_SO
+
+[innodb-snappy]
+innodb
+plugin-load-add=$SNAPPY_SO

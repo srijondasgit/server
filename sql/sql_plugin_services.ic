@@ -259,6 +259,16 @@ static struct wrapper_service_bzip2_st wrapper_handler_bzip2=
 };
 struct wrapper_service_bzip2_st *wrapper_service_bzip2= &wrapper_handler_bzip2;
 
+#include <wrappers/snappy-c.h>
+static struct wrapper_service_snappy_st wrapper_handler_snappy=
+{
+  DEFINE_snappy_max_compressed_length([]) -> size_t { return 0; },
+  DEFINE_snappy_compress([]) { return SNAPPY_INVALID_INPUT; },
+  DEFINE_snappy_uncompressed_length([]) { return SNAPPY_INVALID_INPUT; },
+  DEFINE_snappy_uncompress([]) { return SNAPPY_INVALID_INPUT; }
+};
+struct wrapper_service_snappy_st *wrapper_service_snappy= &wrapper_handler_snappy;
+
 static struct st_service_ref list_of_services[]=
 {
   { "base64_service",              VERSION_base64,              &base64_handler },
@@ -286,5 +296,6 @@ static struct st_service_ref list_of_services[]=
   { "thd_mdl_service",             VERSION_thd_mdl,             &thd_mdl_handler },
   { "wrapper_service_bzip2",       VERSION_wrapper_bzip2,       &wrapper_handler_bzip2 },
   { "wrapper_service_lzma",        VERSION_wrapper_lzma,        &wrapper_handler_lzma },
-  { "wrapper_service_lzo",         VERSION_wrapper_lzo,         &wrapper_handler_lzo }
+  { "wrapper_service_lzo",         VERSION_wrapper_lzo,         &wrapper_handler_lzo },
+  { "wrapper_service_snappy",      VERSION_wrapper_snappy,      &wrapper_handler_snappy }
 };

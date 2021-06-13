@@ -47,3 +47,4 @@
 #define VERSION_wrapper_bzip2           0x0100
 #define VERSION_wrapper_lzma            0x0100
 #define VERSION_wrapper_lzo             0x0100
+#define VERSION_wrapper_snappy          0x0100

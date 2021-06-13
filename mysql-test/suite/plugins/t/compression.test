@@ -1,6 +1,16 @@
 let $engine=`select regexp_replace('$MTR_COMBINATIONS', '-.*', '')`;
 let $alg=`select regexp_replace('$MTR_COMBINATIONS', '.*-', '')`;
 
+if (`select count(*) = 0 from information_schema.plugins where plugin_name = '$engine' and plugin_status='active'`)
+{
+  --skip Needs $engine plugin
+}
+
+if (`select count(*) = 0 from information_schema.plugins where plugin_name = '$alg' and plugin_status='active'`)
+{
+  --skip Needs $alg plugin
+}
+
 --echo #
 --echo # Testing $alg compression with $engine
 --echo #

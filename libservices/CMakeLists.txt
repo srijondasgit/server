@@ -41,6 +41,7 @@ SET(MYSQLSERVICES_SOURCES
   wrapper_service_bzip2.c
   wrapper_service_lzma.c
   wrapper_service_lzo.c
+  wrapper_service_snappy.c
 )
 
 ADD_CONVENIENCE_LIBRARY(mysqlservices ${MYSQLSERVICES_SOURCES})
