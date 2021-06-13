@@ -45,6 +45,9 @@ typedef enum
     LZMA_CHECK_CRC64    = 4,
     LZMA_CHECK_SHA256   = 10
 } lzma_check;
+
+#define lzma_stream_buffer_decode(...) compression_service_lzma->lzma_stream_buffer_decode_ptr (__VA_ARGS__)
+#define lzma_easy_buffer_encode(...)   compression_service_lzma->lzma_easy_buffer_encode_ptr   (__VA_ARGS__)
 #endif
 
 #define DEFINE_lzma_stream_buffer_decode(NAME) lzma_ret NAME(   \
@@ -80,11 +83,6 @@ struct compression_service_lzma_st
 };
 
 extern struct compression_service_lzma_st *compression_service_lzma;
-
-#ifndef LZMA_VERSION
-#define lzma_stream_buffer_decode(...) compression_service_lzma->lzma_stream_buffer_decode_ptr (__VA_ARGS__)
-#define lzma_easy_buffer_encode(...)   compression_service_lzma->lzma_easy_buffer_encode_ptr   (__VA_ARGS__)
-#endif
 
 #ifdef __cplusplus
 }

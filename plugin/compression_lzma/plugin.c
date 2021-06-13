@@ -18,24 +18,24 @@
 #include <lzma.h>
 #include <compression/lzma.h>
 
-static int lzma_init(void* h)
+static int init(void* h)
 {
   compression_service_lzma->lzma_stream_buffer_decode_ptr= lzma_stream_buffer_decode;
   compression_service_lzma->lzma_easy_buffer_encode_ptr= lzma_easy_buffer_encode;
   return 0;
 }
 
-struct st_mysql_daemon lzma_plugin= { MYSQL_DAEMON_INTERFACE_VERSION  };
+struct st_mysql_daemon info= { MYSQL_DAEMON_INTERFACE_VERSION  };
 
 maria_declare_plugin(lzma)
 {
   MYSQL_DAEMON_PLUGIN,
-  &lzma_plugin,
+  &info,
   "lzma",
   "Sergei Golubchik",
   "LZMA compression service",
   PLUGIN_LICENSE_GPL,
-  lzma_init,
+  init,
   NULL,
   0x0100,
   NULL,
