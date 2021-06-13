@@ -12,12 +12,17 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
+#ifndef LZO_E_OK
 #define LZO_E_OK                0
 #define LZO_E_INTERNAL_ERROR    (-99)
 
 #define LZO1X_1_15_MEM_COMPRESS ((unsigned int) (32768L * ((unsigned) sizeof(unsigned char *))))
 
 typedef unsigned long lzo_uint;
+
+#define lzo1x_1_15_compress(...)   compression_service_lzo->lzo1x_1_15_compress_ptr   (__VA_ARGS__)
+#define lzo1x_decompress_safe(...) compression_service_lzo->lzo1x_decompress_safe_ptr (__VA_ARGS__)
+#endif
 
 #define DEFINE_lzo1x_1_15_compress(NAME) int NAME(  \
     const unsigned char *src,                       \
@@ -45,9 +50,6 @@ struct compression_service_lzo_st
 };
 
 extern struct compression_service_lzo_st *compression_service_lzo;
-
-#define lzo1x_1_15_compress(...)   compression_service_lzo->lzo1x_1_15_compress_ptr   (__VA_ARGS__)
-#define lzo1x_decompress_safe(...) compression_service_lzo->lzo1x_decompress_safe_ptr (__VA_ARGS__)
 
 #ifdef __cplusplus
 }
