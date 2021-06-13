@@ -17,3 +17,7 @@ plugin-load-add=$BZIP2_SO
 [innodb-snappy]
 innodb
 plugin-load-add=$SNAPPY_SO
+
+[mroonga-lz4]
+plugin-load-add=$HA_MROONGA_SO
+plugin-load-add=$LZ4_SO
