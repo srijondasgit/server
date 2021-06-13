@@ -1,0 +1,7 @@
+[innodb-lzma]
+innodb
+plugin-load-add=$LZMA_SO
+
+[innodb-lzo]
+innodb
+plugin-load-add=$LZO_SO

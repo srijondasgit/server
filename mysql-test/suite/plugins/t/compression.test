@@ -1,0 +1,28 @@
+let $engine=`select regexp_replace('$MTR_COMBINATIONS', '-.*', '')`;
+let $alg=`select regexp_replace('$MTR_COMBINATIONS', '.*-', '')`;
+
+--echo #
+--echo # Testing $alg compression with $engine
+--echo #
+
+eval set global innodb_compression_algorithm = $alg;
+let $create_parameters = page_compressed = 1;
+call mtr.add_suppression("InnoDB: Background Page read failed to read or decrypt \\[page id: space=\\d+, page number=\\d+\\]");
+call mtr.add_suppression("InnoDB: Table `test`.`t1` is corrupted. Please drop the table and recreate.");
+
+eval CREATE TABLE t1 (a int, b text) engine = $engine $create_parameters;
+
+insert t1 (a, b) values (0, repeat("abc", 100));
+insert t1 (a, b) values (1, repeat("def", 1000));
+insert t1 (a, b) values (2, repeat("ghi", 10000));
+select a, left(b, 9), length(b) from t1;
+
+let $restart_parameters = --disable-$alg;
+source include/restart_mysqld.inc;
+
+error ER_NO_SUCH_TABLE_IN_ENGINE;
+eval SELECT * FROM t1;
+drop table t1;
+
+let $restart_parameters =;
+source include/restart_mysqld.inc;
