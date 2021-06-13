@@ -43,7 +43,6 @@ MACRO(MYSQL_ADD_PLUGIN)
 
   # Add common include directories
   INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include
-                      ${CMAKE_SOURCE_DIR}/include/wrappers
                       ${CMAKE_SOURCE_DIR}/sql
                       ${PCRE_INCLUDES}
                       ${SSL_INCLUDE_DIRS}

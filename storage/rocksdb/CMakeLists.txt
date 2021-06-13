@@ -121,6 +121,11 @@ else()
   SET(ATOMIC_EXTRA_LIBS)
 endif()
 
+# don't use compression wrappers, there are standalone executables below
+GET_PROPERTY(dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
+LIST(REMOVE_ITEM dirs ${CMAKE_SOURCE_DIR}/include/wrappers)
+SET_PROPERTY(DIRECTORY PROPERTY INCLUDE_DIRECTORIES "${dirs}")
+
 MYSQL_ADD_PLUGIN(rocksdb ${ROCKSDB_SE_SOURCES} MODULE_ONLY STORAGE_ENGINE
                  LINK_LIBRARIES ${ATOMIC_EXTRA_LIBS}
                  COMPONENT rocksdb-engine)
@@ -129,12 +134,6 @@ IF(NOT TARGET rocksdb)
   # Bail out if compilation with rocksdb engine is not requested
   RETURN()
 ENDIF()
-
-# don't use compression wrappers, there are standalone executables below
-GET_PROPERTY(dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
-LIST(REMOVE_ITEM dirs ${CMAKE_SOURCE_DIR}/include/wrappers)
-SET_PROPERTY(DIRECTORY PROPERTY INCLUDE_DIRECTORIES "${dirs}")
-SET_PROPERTY(TARGET rocksdb PROPERTY INCLUDE_DIRECTORIES "${dirs}")
 
 CHECK_CXX_SOURCE_COMPILES("
 #if defined(_MSC_VER) && !defined(__thread)
