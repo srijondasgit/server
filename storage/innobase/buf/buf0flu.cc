@@ -282,7 +282,7 @@ ulint buf_flush_dirty_pages(ulint id)
   }
   mysql_mutex_unlock(&buf_pool.flush_list_mutex);
   if (n)
-    buf_flush_lists(srv_max_io_capacity, LSN_MAX);
+    buf_flush_list(srv_max_io_capacity, LSN_MAX);
   return n;
 }
 
@@ -1508,7 +1508,7 @@ static void log_flush(void *)
   os_aio_wait_until_no_pending_writes();
   fil_flush_file_spaces();
 
-  /* Guarantee progress for buf_flush_lists(). */
+  /* Guarantee progress for buf_flush_list(). */
   log_buffer_flush_to_disk(true);
   log_flush_pending.clear();
 }
@@ -1517,14 +1517,12 @@ static tpool::waitable_task log_flush_task(log_flush, nullptr, nullptr);
 
 /** Write out dirty blocks from buf_pool.flush_list.
 @param max_n    wished maximum mumber of blocks flushed
-@param lsn      buf_pool.get_oldest_modification(LSN_MAX) target (0=LRU flush)
+@param lsn      buf_pool.get_oldest_modification(LSN_MAX) target
 @return the number of processed pages
-@retval 0 if a batch of the same type (lsn==0 or lsn!=0) is already running */
-ulint buf_flush_lists(ulint max_n, lsn_t lsn)
+@retval 0 if a buf_pool.flush_list batch is already running */
+ulint buf_flush_list(ulint max_n, lsn_t lsn)
 {
-  auto &n_flush= lsn ? buf_pool.n_flush_list : buf_pool.n_flush_LRU;
-
-  if (n_flush)
+  if (buf_pool.n_flush_list)
     return 0;
 
   lsn_t flushed_lsn= log_sys.get_flushed_lsn();
@@ -1541,41 +1539,70 @@ ulint buf_flush_lists(ulint max_n, lsn_t lsn)
 #endif
   }
 
-  auto cond= lsn ? &buf_pool.done_flush_list : &buf_pool.done_flush_LRU;
-
   mysql_mutex_lock(&buf_pool.mutex);
-  const bool running= n_flush != 0;
+  const bool running= buf_pool.n_flush_list != 0;
   /* FIXME: we are performing a dirty read of buf_pool.flush_list.count
   while not holding buf_pool.flush_list_mutex */
-  if (running || (lsn && !UT_LIST_GET_LEN(buf_pool.flush_list)))
+  if (running || !UT_LIST_GET_LEN(buf_pool.flush_list))
   {
     if (!running)
-      pthread_cond_broadcast(cond);
+      pthread_cond_broadcast(&buf_pool.done_flush_list);
     mysql_mutex_unlock(&buf_pool.mutex);
     return 0;
   }
-  n_flush++;
+  buf_pool.n_flush_list++;
 
-  ulint n_flushed= lsn
-    ? buf_do_flush_list_batch(max_n, lsn)
-    : buf_do_LRU_batch(max_n);
-
-  const auto n_flushing= --n_flush;
+  ulint n_flushed= buf_do_flush_list_batch(max_n, lsn);
+  const auto n_flushing= --buf_pool.n_flush_list;
 
   buf_pool.try_LRU_scan= true;
 
   mysql_mutex_unlock(&buf_pool.mutex);
 
   if (!n_flushing)
-    pthread_cond_broadcast(cond);
+    pthread_cond_broadcast(&buf_pool.done_flush_list);
 
   buf_dblwr.flush_buffered_writes();
 
-  DBUG_PRINT("ib_buf", ("%s completed, " ULINTPF " pages",
-                        lsn ? "flush_list" : "LRU flush", n_flushed));
+  DBUG_PRINT("ib_buf", ("flush_list completed, " ULINTPF " pages", n_flushed));
   return n_flushed;
 }
 
+/** Write out dirty blocks from buf_pool.LRU.
+@param max_n    wished maximum mumber of blocks flushed
+@return the number of processed pages
+@retval 0 if a buf_pool.LRU batch is already running */
+ulint buf_flush_LRU(ulint max_n)
+{
+  if (buf_pool.n_flush_LRU)
+    return 0;
+
+  log_buffer_flush_to_disk(true);
+
+  mysql_mutex_lock(&buf_pool.mutex);
+  if (buf_pool.n_flush_LRU)
+  {
+    mysql_mutex_unlock(&buf_pool.mutex);
+    return 0;
+  }
+  buf_pool.n_flush_LRU++;
+
+  ulint n_flushed= buf_do_LRU_batch(max_n);
+
+  const auto n_flushing= --buf_pool.n_flush_LRU;
+
+  buf_pool.try_LRU_scan= true;
+
+  mysql_mutex_unlock(&buf_pool.mutex);
+
+  if (!n_flushing)
+    pthread_cond_broadcast(&buf_pool.done_flush_LRU);
+
+  buf_dblwr.flush_buffered_writes();
+
+  DBUG_PRINT("ib_buf", ("LRU flush completed, " ULINTPF " pages", n_flushed));
+  return n_flushed;
+}
 
 /** Initiate a log checkpoint, discarding the start of the log.
 @param oldest_lsn   the checkpoint LSN
@@ -1709,7 +1736,7 @@ ATTRIBUTE_COLD void buf_flush_wait_flushed(lsn_t sync_lsn)
       do
       {
         mysql_mutex_unlock(&buf_pool.flush_list_mutex);
-        ulint n_pages= buf_flush_lists(srv_max_io_capacity, sync_lsn);
+        ulint n_pages= buf_flush_list(srv_max_io_capacity, sync_lsn);
         buf_flush_wait_batch_end_acquiring_mutex(false);
         if (n_pages)
         {
@@ -1796,7 +1823,7 @@ ATTRIBUTE_COLD static void buf_flush_sync_for_checkpoint(lsn_t lsn)
   {
     mysql_mutex_unlock(&buf_pool.flush_list_mutex);
 
-    if (ulint n_flushed= buf_flush_lists(srv_max_io_capacity, lsn))
+    if (ulint n_flushed= buf_flush_list(srv_max_io_capacity, lsn))
     {
       MONITOR_INC_VALUE_CUMULATIVE(MONITOR_FLUSH_SYNC_TOTAL_PAGE,
                                    MONITOR_FLUSH_SYNC_COUNT,
@@ -2157,14 +2184,14 @@ unemployed:
 
     if (UNIV_UNLIKELY(lsn_limit != 0))
     {
-      n_flushed= buf_flush_lists(srv_max_io_capacity, lsn_limit);
+      n_flushed= buf_flush_list(srv_max_io_capacity, lsn_limit);
       /* wake up buf_flush_wait_flushed() */
       pthread_cond_broadcast(&buf_pool.done_flush_list);
       goto try_checkpoint;
     }
     else if (idle_flush || !srv_adaptive_flushing)
     {
-      n_flushed= buf_flush_lists(srv_io_capacity, LSN_MAX);
+      n_flushed= buf_flush_list(srv_io_capacity, LSN_MAX);
 try_checkpoint:
       if (n_flushed)
       {
@@ -2191,7 +2218,7 @@ do_checkpoint:
     {
       page_cleaner.flush_pass++;
       const ulint tm= ut_time_ms();
-      last_pages= n_flushed= buf_flush_lists(n, LSN_MAX);
+      last_pages= n_flushed= buf_flush_list(n, LSN_MAX);
       page_cleaner.flush_time+= ut_time_ms() - tm;
 
       if (n_flushed)
@@ -2284,7 +2311,7 @@ ATTRIBUTE_COLD void buf_flush_buffer_pool()
 
   while (buf_pool.n_flush_list || buf_flush_list_length())
   {
-    buf_flush_lists(srv_max_io_capacity, LSN_MAX);
+    buf_flush_list(srv_max_io_capacity, LSN_MAX);
     timespec abstime;
 
     if (buf_pool.n_flush_list)
@@ -2311,7 +2338,7 @@ void buf_flush_sync()
 {
   for (;;)
   {
-    const ulint n_flushed= buf_flush_lists(srv_max_io_capacity, LSN_MAX);
+    const ulint n_flushed= buf_flush_list(srv_max_io_capacity, LSN_MAX);
     buf_flush_wait_batch_end_acquiring_mutex(false);
     if (!n_flushed && !buf_flush_list_length())
       return;

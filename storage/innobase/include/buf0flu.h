@@ -95,10 +95,16 @@ buf_flush_init_for_writing(
 
 /** Write out dirty blocks from buf_pool.flush_list.
 @param max_n    wished maximum mumber of blocks flushed
-@param lsn      buf_pool.get_oldest_modification(LSN_MAX) target (0=LRU flush)
+@param lsn      buf_pool.get_oldest_modification(LSN_MAX) target
 @return the number of processed pages
-@retval 0 if a batch of the same type (lsn==0 or lsn!=0) is already running */
-ulint buf_flush_lists(ulint max_n, lsn_t lsn);
+@retval 0 if a buf_pool.flush_list batch is already running */
+ulint buf_flush_list(ulint max_n, lsn_t lsn);
+
+/** Write out dirty blocks from buf_pool.LRU.
+@param max_n    wished maximum mumber of blocks flushed
+@return the number of processed pages
+@retval 0 if a buf_pool.LRU batch is already running */
+ulint buf_flush_LRU(ulint max_n);
 
 /** Wait until a flush batch ends.
 @param lru    true=buf_pool.LRU; false=buf_pool.flush_list */
