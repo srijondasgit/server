@@ -2636,13 +2636,11 @@ static my_bool xarecover_handlerton(THD *unused, plugin_ref plugin,
             sql_print_error("Error in memory allocation at xarecover_handlerton");
             break;
           }
-        } else
+        }
         if (IF_WSREP((wsrep_emulate_bin_log &&
                       wsrep_is_wsrep_xid(info->list + i) &&
                       x <= wsrep_limit), false) ||
-            (info->commit_list ?
-             my_hash_search(info->commit_list, (uchar *)&x, sizeof(x)) != 0 :
-             tc_heuristic_recover == TC_HEURISTIC_RECOVER_COMMIT))
+            tc_heuristic_recover == TC_HEURISTIC_RECOVER_COMMIT)
         {
           int rc= hton->commit_by_xid(hton, info->list+i);
           if (rc == 0)
@@ -2653,7 +2651,8 @@ static my_bool xarecover_handlerton(THD *unused, plugin_ref plugin,
               });
           }
         }
-        else
+        else if (WSREP_ON ||
+                 tc_heuristic_recover == TC_HEURISTIC_RECOVER_ROLLBACK)
         {
           int rc= hton->rollback_by_xid(hton, info->list+i);
           if (rc == 0)
