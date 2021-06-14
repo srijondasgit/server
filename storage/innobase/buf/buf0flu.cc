@@ -261,31 +261,6 @@ void buf_flush_remove_pages(ulint id)
   mysql_mutex_unlock(&buf_pool.mutex);
 }
 
-/** Try to flush all the dirty pages that belong to a given tablespace.
-@param id    tablespace identifier
-@return number dirty pages that there were for this tablespace */
-ulint buf_flush_dirty_pages(ulint id)
-{
-  ulint n= 0;
-
-  mysql_mutex_lock(&buf_pool.flush_list_mutex);
-
-  for (buf_page_t *bpage= UT_LIST_GET_FIRST(buf_pool.flush_list); bpage;
-       bpage= UT_LIST_GET_NEXT(list, bpage))
-  {
-    ut_d(const auto s= bpage->state());
-    ut_ad(s == BUF_BLOCK_ZIP_PAGE || s == BUF_BLOCK_FILE_PAGE ||
-          s == BUF_BLOCK_REMOVE_HASH);
-    ut_ad(bpage->oldest_modification());
-    if (id == bpage->id().space())
-      n++;
-  }
-  mysql_mutex_unlock(&buf_pool.flush_list_mutex);
-  if (n)
-    buf_flush_list(srv_max_io_capacity, LSN_MAX);
-  return n;
-}
-
 /*******************************************************************//**
 Relocates a buffer control block on the flush_list.
 Note that it is assumed that the contents of bpage have already been
@@ -1525,12 +1500,10 @@ ulint buf_flush_list(ulint max_n, lsn_t lsn)
   if (buf_pool.n_flush_list)
     return 0;
 
-  lsn_t flushed_lsn= log_sys.get_flushed_lsn();
-  if (log_sys.get_lsn() > flushed_lsn)
+  if (log_sys.get_lsn() > log_sys.get_flushed_lsn())
   {
     log_flush_task.wait();
-    flushed_lsn= log_sys.get_flushed_lsn();
-    if (log_sys.get_lsn() > flushed_lsn &&
+    if (log_sys.get_lsn() > log_sys.get_flushed_lsn() &&
         !log_flush_pending.test_and_set())
       srv_thread_pool->submit_task(&log_flush_task);
 #if defined UNIV_DEBUG || defined UNIV_IBUF_DEBUG
@@ -1566,6 +1539,120 @@ ulint buf_flush_list(ulint max_n, lsn_t lsn)
 
   DBUG_PRINT("ib_buf", ("flush_list completed, " ULINTPF " pages", n_flushed));
   return n_flushed;
+}
+
+/** Try to flush all the dirty pages that belong to a given tablespace.
+@param space       tablespace
+@param n_flushed   number of pages written
+@return whether any pages might not have been flushed */
+bool buf_flush_list_space(fil_space_t *space, ulint *n_flushed)
+{
+  const auto space_id= space->id;
+  ut_ad(space_id <= SRV_SPACE_ID_UPPER_BOUND);
+
+  if (log_sys.get_lsn() > log_sys.get_flushed_lsn())
+  {
+    log_flush_task.wait();
+    if (log_sys.get_lsn() > log_sys.get_flushed_lsn() &&
+        !log_flush_pending.test_and_set())
+      srv_thread_pool->submit_task(&log_flush_task);
+  }
+
+  bool may_have_skipped= false;
+  ulint max_n_flush= srv_io_capacity;
+
+  mysql_mutex_lock(&buf_pool.mutex);
+  mysql_mutex_lock(&buf_pool.flush_list_mutex);
+  buf_flush_freed_pages(space);
+
+  bool acquired= space->acquire();
+
+  /* In order not to degenerate this scan to O(n*n) we attempt to
+  preserve pointer of previous block in the flush list. To do so we
+  declare it a hazard pointer. Any thread working on the flush list
+  must check the hazard pointer and if it is removing the same block
+  then it must reset it. */
+  for (buf_page_t *bpage= UT_LIST_GET_LAST(buf_pool.flush_list); bpage; )
+  {
+    ut_d(const auto s= bpage->state());
+    ut_ad(s == BUF_BLOCK_ZIP_PAGE || s == BUF_BLOCK_FILE_PAGE ||
+          s == BUF_BLOCK_REMOVE_HASH);
+    ut_ad(bpage->oldest_modification());
+    ut_ad(bpage->in_file());
+
+    buf_page_t *prev= UT_LIST_GET_PREV(list, bpage);
+    if (bpage->id().space() != space_id);
+    else if (!bpage->ready_for_flush())
+      may_have_skipped= true;
+    else
+    {
+      buf_pool.flush_hp.set(prev);
+      mysql_mutex_unlock(&buf_pool.flush_list_mutex);
+
+      if (!acquired)
+      {
+      was_freed:
+        buf_flush_discard_page(bpage);
+      }
+      else
+      {
+        if (space->is_stopping())
+        {
+          space->release();
+          acquired= false;
+          goto was_freed;
+        }
+        if (!buf_flush_page(bpage, false, space))
+        {
+          may_have_skipped= true;
+          mysql_mutex_lock(&buf_pool.flush_list_mutex);
+          goto next_after_skip;
+        }
+        if (n_flushed)
+          ++*n_flushed;
+        if (!--max_n_flush)
+        {
+          mysql_mutex_lock(&buf_pool.mutex);
+          mysql_mutex_lock(&buf_pool.flush_list_mutex);
+          may_have_skipped= true;
+          break;
+        }
+        mysql_mutex_lock(&buf_pool.mutex);
+      }
+
+      mysql_mutex_lock(&buf_pool.flush_list_mutex);
+      if (!buf_pool.flush_hp.is_hp(prev))
+        may_have_skipped= true;
+next_after_skip:
+      bpage= buf_pool.flush_hp.get();
+      continue;
+    }
+
+    bpage= prev;
+  }
+
+  /* Note: this loop may have been executed concurrently with
+  buf_do_flush_list_batch() as well as other threads executing
+  buf_flush_list_space(). We should always return true from
+  buf_flush_list_space() if that should be the case; in
+  buf_do_flush_list_batch() we will simply perform less work. */
+
+  buf_pool.flush_hp.set(nullptr);
+  mysql_mutex_unlock(&buf_pool.flush_list_mutex);
+
+  buf_pool.try_LRU_scan= true;
+
+  mysql_mutex_unlock(&buf_pool.mutex);
+
+  if (acquired)
+    space->release();
+
+  if (space->purpose == FIL_TYPE_IMPORT)
+    os_aio_wait_until_no_pending_writes();
+  else
+    buf_dblwr.flush_buffered_writes();
+
+  return may_have_skipped;
 }
 
 /** Write out dirty blocks from buf_pool.LRU.

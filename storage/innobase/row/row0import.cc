@@ -4213,7 +4213,7 @@ row_import_for_mysql(
 	/* Ensure that all pages dirtied during the IMPORT make it to disk.
 	The only dirty pages generated should be from the pessimistic purge
 	of delete marked records that couldn't be purged in Phase I. */
-	while (buf_flush_dirty_pages(prebuilt->table->space_id));
+	while (buf_flush_list_space(prebuilt->table->space));
 
 	ib::info() << "Phase IV - Flush complete";
 	prebuilt->table->space->set_imported();

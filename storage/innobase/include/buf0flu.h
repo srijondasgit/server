@@ -56,12 +56,6 @@ the list as they age towards the tail of the LRU.
 @param id    tablespace identifier */
 void buf_flush_remove_pages(ulint id);
 
-/** Try to flush all the dirty pages that belong to a given tablespace.
-@param id    tablespace identifier
-@return number dirty pages that there were for this tablespace */
-ulint buf_flush_dirty_pages(ulint id)
-  MY_ATTRIBUTE((warn_unused_result));
-
 /*******************************************************************//**
 Relocates a buffer control block on the flush_list.
 Note that it is assumed that the contents of bpage has already been
@@ -99,6 +93,13 @@ buf_flush_init_for_writing(
 @return the number of processed pages
 @retval 0 if a buf_pool.flush_list batch is already running */
 ulint buf_flush_list(ulint max_n, lsn_t lsn);
+
+/** Try to flush dirty pages that belong to a given tablespace.
+@param space       tablespace
+@param n_flushed   number of pages written
+@return whether any pages might not have been flushed */
+bool buf_flush_list_space(fil_space_t *space, ulint *n_flushed= nullptr)
+  MY_ATTRIBUTE((warn_unused_result));
 
 /** Write out dirty blocks from buf_pool.LRU.
 @param max_n    wished maximum mumber of blocks flushed
